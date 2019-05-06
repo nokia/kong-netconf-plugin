@@ -1,0 +1,25 @@
+# Lincensed under BSD 3 Clause License
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright, 2019 Nokia
+
+_format_version: "1.1"
+
+services:
+- name: netconfupstream
+  url: tcp://${UPSTREAM_SERVER}
+
+routes:
+- name: netconfproxy
+  destinations:
+  - ip: "127.0.0.1"
+    port: ${KONG_NETCONF_LISTENER_PORT}
+  protocols: ["tcp"]
+  plugins:
+  - name: netconf
+    protocols: ["tcp"] 
+- name: netconfupstream
+  destinations:
+  - ip: "127.0.0.1"
+    port: ${KONG_SSH_LISTENER_PORT}
+  protocols: ["tcp"]
+  service: netconfupstream

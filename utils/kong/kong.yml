@@ -1,0 +1,105 @@
+# Lincensed under BSD 3 Clause License
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright, 2019 Nokia
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kong
+  labels:
+    app: kong
+spec:
+  containers:
+  - name: kong
+    image: ${KONG_CONTAINER_IMAGE}
+    imagePullPolicy: IfNotPresent
+    env:
+    - name: KONG_DATABASE
+      value: "off"
+    - name: KONG_PROXY_ACCESS_LOG
+      value: "/dev/stdout"
+    - name: KONG_ADMIN_ACCESS_LOG
+      value: "/dev/stdout"
+    - name: KONG_PROXY_ERROR_LOG
+      value: "/dev/stderr"
+    - name: KONG_ADMIN_ERROR_LOG
+      value: "/dev/stderr"
+    - name: KONG_ADMIN_LISTEN
+      value: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+    - name: KONG_STREAM_LISTEN
+      value: "0.0.0.0:${KONG_NETCONF_LISTENER_PORT}, 127.0.0.1:${KONG_SSH_LISTENER_PORT}"
+    - name: KONG_LOG_LEVEL
+      value: "debug"
+    - name: KONG_DECLARATIVE_CONFIG
+      value: "/tmp/kong.yml"
+    ports:
+    - containerPort: 8000
+    - containerPort: 8443
+    - containerPort: 8001
+    - containerPort: 8444
+    volumeMounts:
+    - mountPath: /etc/kong/kong.conf
+      name: kong-config
+    - mountPath: /usr/local/share/lua/5.1/kong/plugins/netconf
+      name: netconf-plugin
+    - mountPath: ${PLUGIN_SECRET_PATH}
+      name: netconf-secret
+    - mountPath: /tmp/kong.yml
+      name: kong-srp-config
+    - mountPath: /tmp/netconfusers
+      name: shared-cache
+  - name: sshd
+    image: ${SSHD_CONTAINER_IMAGE}
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+    - mountPath: /etc/ssh/sshd_config
+      name: sshd-config
+    - mountPath: /home/netconf/.ssh/authorized_keys
+      name: public-key
+    - mountPath: /tmp/netconfusers
+      name: shared-cache
+  volumes:
+  - name: sshd-config
+    hostPath:
+      path: ${SSHD_CONFIG_PATH}
+  - name: public-key
+    hostPath:
+      path: ${SSHD_PUBLIC_KEY_PATH}
+  - name: kong-config
+    hostPath: 
+      path: ${KONG_CONFIG_PATH}
+  - name: netconf-plugin
+    hostPath:
+      path: ${NECTONF_PLUGIN_PATH}
+  - name: netconf-secret
+    secret:
+      secretName: netconf-user-password
+      items:
+      - key: password
+        path: netconf/password 
+  - name: kong-srp-config
+    hostPath:
+      path: ${KONG_SERVICE_ROUTE_PLUGIN_CONFIG_PATH}
+  - name: shared-cache
+    emptyDir:
+      medium: Memory
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ssh_netconf
+spec:
+  selector:
+    app: kong
+  ports:
+    - port: 830
+      targetPort: 8830
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: netconf-user-password
+type: Opaque
+stringData:
+  password: |-
+    netconf

@@ -1,0 +1,30 @@
+# Lincensed under BSD 3 Clause License
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright, 2019 Nokia
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: netopeer2
+  labels:
+    app: netopeer2
+spec:
+  containers:
+  - name: netopeer2
+    image: sysrepo/sysrepo-netopeer2:latest
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 830
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: netopeer2
+spec:
+  selector:
+    app: netopeer2
+  ports:
+    - port: 830
+      targetPort: 830
+
