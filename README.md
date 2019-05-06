@@ -7,7 +7,7 @@ This plugin implements a simple and basic NETCONF (RFC6421) reverse proxy.
 This plugin is not production grade currently.
 
 # 1. Functionality
-This plugin sits between the NETCONF client and the NETCONF servers and it distributes the different client requests to different NETCONF servers based on their <capability>. It is a kind of "back-2-back NETCONF agent": it manages separated <hello> negotiations towards the client and the servers, and consequently it manages the different session-ids, too.   
+This plugin sits between the NETCONF client and the NETCONF servers and it distributes the different client requests to different NETCONF servers based on their ```<capability>```. It is a kind of "back-2-back NETCONF agent": it manages separated ```<hello>``` negotiations towards the client and the servers, and consequently it manages the different session-ids, too.   
 
 # 2. Installation
 Requires: Kong version >= 1.0.3
@@ -18,7 +18,7 @@ The plugin itself is a regular Kong plugin, so you can follow the relevant plugi
 
 NETCONF uses SSH as a "Secure Transport Layer". This plugin does not implement an SSH server (towards the NETCONF client), or an SSH client (towards the NETCONF servers). It requires a standalone SSH server to manage the SSH session towards the client, and in turn it requries an SSH client that can manage an SSH session towards the NETCONF servers.
 
-The plugin expects that it can read out the client's user name - with which the client logged into the SSH server - from a file named /tmp/netconfusers/<client port of the connection from the SSH server to Kong>. The plugin needs this user name information in order to be able to login with the same user into the NETCONF server.
+The plugin expects that it can read out the client's user name - with which the client logged into the SSH server - from a file named /tmp/netconfusers/"client port of the connection from the SSH server to Kong". The plugin needs this user name information in order to be able to login with the same user into the NETCONF server.
 
 In order to have the necessary SSH server and SSH client "around" we provide here the artefacts required for a Kubernetes based deployment. 
 
@@ -132,8 +132,12 @@ Check and cover all operations and functionalities defined in the NETCONF RFC
 
 Provide a Helm or kustomize based solution for the customization of the deployment manifests at /utils, instead of the current "environment variable" based one
 
+Unit tests
+
+Refactoring ugly code
+
 # FAQ
 
 ## Why?
 
-This is a totally valid question. It all started with a discussion in which there was a statement like "Kong does not support NETCONF". That sounded like a challenge at that time, and this plugin was born. Not because the author is religious about Kong, or something. Simply, it was a glove. But of course, it does not make any sense to write a plugin that just passes NETCONF messages back and forth. If we check NETCONF a bit closer it turns out that it is just a protocol for RPC, and actually it was designed with further extensibility in mind. So, in order to give some meaning to this nonsense project here the idea was: let's create a NETCONF reverse proxy that can distribute NETCONF messages to the upstream NETCONF servers based on the <capability> of the RPC request.
+This is a totally valid question. It all started with a discussion in which there was a statement like "Kong does not support NETCONF". That sounded like a challenge at that time, and this plugin was born. Not because the author is religious about Kong, or something. Simply, it was a glove. But of course, it does not make any sense to write a plugin that just passes NETCONF messages back and forth. If we check NETCONF a bit closer it turns out that it is just a protocol for RPC, and actually it was designed with further extensibility in mind. So, in order to give some meaning to this nonsense project here the idea was: let's create a NETCONF reverse proxy that can distribute NETCONF messages to the upstream NETCONF servers based on the ```<capability>``` of the RPC request.
